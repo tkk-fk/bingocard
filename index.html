@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>カスタムビンゴカード | 特別支援教材</title>
+  <style>
+    :root{
+      --primary-color:#4A90E2;
+      --bg-color:#f0f4f8;
+      --card-bg:#ffffff;
+      --hole-color:#333333;
+      --text-color:#333;
+      --accent-color:#e74c3c;
+      --line:#ddd;
+
+      --glow: rgba(74,144,226,.35);
+
+      /* ★盤面サイズ（JSが画面に合わせて更新） */
+      --board-size: min(92vw, 560px);
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      font-family: "Hiragino Kaku Gothic ProN","Meiryo",system-ui,sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin:0;
+      padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      min-height:100vh;
+    }
+
+    h1{
+      color: var(--primary-color);
+      font-size: clamp(20px, 4vw, 30px);
+      margin: 6px 0 14px;
+      text-align:center;
+      letter-spacing:.02em;
+    }
+
+    /* =========================
+       子ども向け：設定画面
+    ========================= */
+    #settings-panel{
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: 18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+      width: min(560px, 100%);
+    }
+
+    .kid-step{
+      border: 2px solid rgba(74,144,226,.18);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+      background: rgba(74,144,226,.05);
+    }
+
+    .kid-step-title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 900;
+      font-size: 1.05rem;
+      margin-bottom: 10px;
+      color: #214a7a;
+    }
+
+    .badge{
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(74,144,226,.18);
+      color: #214a7a;
+      font-weight: 900;
+    }
+
+    .choice-grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:10px;
+    }
+
+    .choice-btn{
+      border: 2px solid rgba(74,144,226,.28);
+      background:#fff;
+      border-radius: 16px;
+      padding: 12px;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 1.05rem;
+      color:#1f3f67;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.06);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .choice-btn small{
+      display:block;
+      margin-top:4px;
+      font-weight: 800;
+      font-size: .85rem;
+      color:#4a607a;
+      opacity:.9;
+    }
+    .choice-btn:active{ transform: scale(0.98); }
+    .choice-btn.selected{
+      border-color: rgba(74,144,226,.85);
+      box-shadow: 0 0 0 6px rgba(74,144,226,.16);
+      background: rgba(74,144,226,.08);
+    }
+
+    .mode-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .mode-btn{
+      flex:1 1 180px;
+      border: 2px solid rgba(74,144,226,.28);
+      background:#fff;
+      border-radius: 16px;
+      padding: 12px;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 1.05rem;
+      color:#1f3f67;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.06);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      text-align:left;
+    }
+    .mode-btn.selected{
+      border-color: rgba(74,144,226,.85);
+      box-shadow: 0 0 0 6px rgba(74,144,226,.16);
+      background: rgba(74,144,226,.08);
+    }
+    .mode-btn small{
+      display:block;
+      margin-top:4px;
+      font-weight: 800;
+      font-size: .85rem;
+      color:#4a607a;
+      opacity:.9;
+    }
+
+    .sub-area{
+      margin-top: 10px;
+      background:#fff;
+      border: 2px dashed rgba(74,144,226,.28);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .big-input-row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .num-btn{
+      width: 54px;
+      height: 48px;
+      border-radius: 14px;
+      border: 2px solid rgba(74,144,226,.28);
+      background:#fff;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #1f3f67;
+      cursor:pointer;
+      touch-action: manipulation;
+    }
+    .num-btn:active{ transform: scale(0.98); }
+
+    input[type="number"]{
+      width: 140px;
+      height: 48px;
+      font-size: 1.3rem;
+      font-weight: 900;
+      text-align:center;
+      border: 2px solid rgba(74,144,226,.28);
+      border-radius: 14px;
+      padding: 6px 10px;
+      background:#fff;
+    }
+
+    textarea{
+      width:100%;
+      min-height: 100px;
+      font-size: 1.1rem;
+      border: 2px solid rgba(74,144,226,.28);
+      border-radius: 14px;
+      padding: 10px;
+      resize: vertical;
+    }
+
+    .hint{
+      margin-top: 8px;
+      font-weight: 800;
+      color:#4a607a;
+      font-size: .92rem;
+      line-height:1.35;
+    }
+
+    .toggle-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background:#fff;
+      border-radius: 16px;
+      border: 2px solid rgba(74,144,226,.18);
+    }
+    .toggle-row strong{ font-size: 1.02rem; }
+    .switch{
+      width: 64px;
+      height: 36px;
+      border-radius: 999px;
+      background: rgba(149,165,166,.45);
+      position: relative;
+      cursor:pointer;
+      flex: 0 0 auto;
+      border: 2px solid rgba(0,0,0,.06);
+    }
+    .switch::after{
+      content:"";
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background:#fff;
+      position:absolute;
+      top: 2px;
+      left: 2px;
+      transition: all .15s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,.15);
+    }
+    .switch.on{
+      background: rgba(231,76,60,.55);
+    }
+    .switch.on::after{
+      left: 32px;
+    }
+
+    button.primary-btn{
+      width:100%;
+      border:none;
+      border-radius: 999px;
+      padding: 16px 18px;
+      font-size: 1.35rem;
+      font-weight: 1000;
+      background: var(--primary-color);
+      color:#fff;
+      cursor:pointer;
+      box-shadow: 0 8px 18px rgba(74,144,226,.30);
+    }
+    button.primary-btn:active{ transform: scale(0.99); }
+
+    /* 既存 select/radio は保持（ロジック用）しつつ非表示 */
+    #grid-size, #mode-range, #mode-custom{ display:none; }
+
+    /* =========================
+       ゲーム画面
+    ========================= */
+    #game-panel{
+      display:none;
+      flex-direction:column;
+      align-items:center;
+      width:100%;
+      max-width: 860px;
+      gap: 10px;
+    }
+
+    .game-actions{
+      width: 100%;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+
+    button.mini-btn{
+      background:#fff;
+      color: var(--primary-color);
+      border: 2px solid rgba(74,144,226,.35);
+      padding: 10px 14px;
+      font-size: 0.98rem;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 900;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    button.mini-btn:active{ transform: scale(0.98); }
+    button.mini-btn.on{
+      background: rgba(74,144,226,.10);
+      border-color: rgba(74,144,226,.60);
+    }
+    button.secondary-btn{
+      background-color: #95a5a6;
+      color:#fff;
+      border:none;
+      padding: 10px 16px;
+      font-size: 1rem;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 900;
+    }
+
+    /* ★盤面：切れないように、JSが board-size を更新 */
+    #bingo-container{
+      width: var(--board-size);
+      height: var(--board-size);
+      max-width: 100%;
+      background:#fff;
+      padding: clamp(8px, 1.6vw, 14px);
+      border-radius: 18px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.14);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #bingo-grid{
+      display:grid;
+      gap: clamp(5px, 1.4vw, 10px);
+      width:100%;
+      height:100%;
+    }
+
+    .bingo-cell{
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      border: 3px solid var(--primary-color);
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1000;
+      color: var(--primary-color);
+      cursor:pointer;
+      user-select:none;
+      position:relative;
+      padding:0;
+      outline:none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1);
+      transition: transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      font-size: clamp(14px, calc(var(--board-size) / 12), 34px); /* ★盤面に追従 */
+    }
+    .grid-small .bingo-cell{
+      font-size: clamp(22px, calc(var(--board-size) / 7.5), 56px);
+    }
+    .grid-large .bingo-cell{
+      font-size: clamp(12px, calc(var(--board-size) / 18), 20px);
+      border-width: 2px;
+    }
+    .bingo-cell:active{ transform: scale(0.95); }
+
+    .bingo-cell.punched{
+      background: var(--hole-color);
+      color: rgba(255,255,255,0.2);
+      border-color:#222;
+      box-shadow: inset 0 5px 10px rgba(0,0,0,0.5);
+    }
+    .bingo-cell.punched::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background: radial-gradient(circle, transparent 30%, rgba(0,0,0,0.4) 100%);
+      pointer-events:none;
+    }
+
+    .bingo-cell.free{
+      background: var(--accent-color);
+      color:#fff;
+      border-color:#c0392b;
+    }
+    .bingo-cell.free.punched{
+      background: var(--hole-color);
+      color: rgba(255,255,255,0.12);
+      border-color:#111;
+    }
+
+    .bingo-cell.bingo-line{
+      box-shadow: 0 0 0 6px var(--glow), inset 0 -4px 0 rgba(0,0,0,0.1);
+      border-color: rgba(74,144,226,.85);
+      animation: pulse .9s ease-in-out infinite;
+    }
+    @keyframes pulse{ 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.12)} }
+
+    /* オーバーレイ */
+    #bingo-overlay{
+      position: fixed;
+      inset: 0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background: rgba(15,23,42,.45);
+      z-index: 50;
+      padding: 18px;
+    }
+    #bingo-overlay.show{ display:flex; }
+
+    .overlay-card{
+      width: min(520px, 92vw);
+      background:#fff;
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      text-align:center;
+      border: 2px solid rgba(231,76,60,.18);
+    }
+    .overlay-title{
+      font-size: clamp(34px, 6vw, 56px);
+      font-weight: 1000;
+      color: var(--accent-color);
+      letter-spacing: .06em;
+      margin: 4px 0 6px;
+    }
+    .overlay-sub{
+      color:#445;
+      font-weight: 900;
+      margin-bottom: 14px;
+    }
+    .overlay-actions{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .overlay-actions .mini-btn{
+      border-color: rgba(231,76,60,.35);
+      color: var(--accent-color);
+    }
+
+    /* 紙吹雪 */
+    #confetti-canvas{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      z-index: 60;
+      display:none;
+    }
+    #confetti-canvas.show{ display:block; }
+
+    body.is-fullscreen{
+      padding: calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    @media (max-width: 420px){
+      .choice-grid{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ふしぎなビンゴカード</h1>
+
+  <!-- 設定（子ども向け） -->
+  <div id="settings-panel">
+
+    <!-- ロジック用（非表示） -->
+    <select id="grid-size">
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5" selected>5</option>
+      <option value="6">6</option>
+    </select>
+    <input type="radio" id="mode-range" name="num-mode" value="range" checked>
+    <input type="radio" id="mode-custom" name="num-mode" value="custom">
+
+    <div class="kid-step">
+      <div class="kid-step-title"><span class="badge">①</span> マスの かず を えらぶ</div>
+      <div class="choice-grid" id="size-choices">
+        <button class="choice-btn" type="button" data-size="3">3 × 3 <small>かんたん</small></button>
+        <button class="choice-btn" type="button" data-size="4">4 × 4 <small>ちょいむず</small></button>
+        <button class="choice-btn selected" type="button" data-size="5">5 × 5 <small>おすすめ</small></button>
+        <button class="choice-btn" type="button" data-size="6">6 × 6 <small>たくさん</small></button>
+      </div>
+      <div class="hint">※まよったら「5 × 5」がおすすめ</div>
+    </div>
+
+    <div class="kid-step">
+      <div class="kid-step-title"><span class="badge">②</span> つかう すうじ を きめる</div>
+
+      <div class="mode-row">
+        <button class="mode-btn selected" type="button" id="btn-mode-range">
+          1 から えらぶ <small>「1〜○○」で つくる</small>
+        </button>
+        <button class="mode-btn" type="button" id="btn-mode-custom">
+          じぶんで えらぶ <small>すきな すうじ・もじ</small>
+        </button>
+      </div>
+
+      <div class="sub-area" id="input-range-group">
+        <div style="font-weight:900; margin-bottom:8px;">いちばん おおきい すうじ</div>
+        <div class="big-input-row">
+          <button class="num-btn" type="button" id="btn-max-dec">−</button>
+          <input type="number" id="max-number" value="75" min="1" inputmode="numeric">
+          <button class="num-btn" type="button" id="btn-max-inc">＋</button>
+        </div>
+        <div class="hint" id="need-hint">マスを うめるには、すうじが たりているよ！</div>
+      </div>
+
+      <div class="sub-area" id="input-custom-group" style="display:none;">
+        <div style="font-weight:900; margin-bottom:8px;">つかう すうじ・もじ（くぎり：カンマ/かいぎょう/スペース）</div>
+        <textarea id="custom-numbers" placeholder="例:
+1 2 3 4 5
+A B C D"></textarea>
+        <div class="hint" id="custom-hint">マスの かずより たくさん いれてね</div>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <strong>まんなか を「FREE」にする</strong>
+          <div class="hint" style="margin:4px 0 0;">※5×5 など（きすう）だけ</div>
+        </div>
+        <div class="switch on" id="free-switch" role="switch" aria-checked="true" tabindex="0"></div>
+        <input type="checkbox" id="use-free-space" checked style="display:none;">
+      </div>
+    </div>
+
+    <button class="primary-btn" id="btn-generate">スタート！</button>
+  </div>
+
+  <!-- ゲーム画面 -->
+  <div id="game-panel">
+    <div class="game-actions" id="game-actions">
+      <button class="mini-btn" id="btn-new" type="button">あたらしいカード</button>
+      <button class="mini-btn" id="btn-clear" type="button">ぜんぶ もどす</button>
+      <button class="mini-btn on" id="btn-sound" type="button" aria-pressed="true">音：ON</button>
+      <button class="mini-btn" id="btn-fullscreen" type="button">フルスクリーン</button>
+      <button class="secondary-btn" id="btn-back" type="button">もどる</button>
+    </div>
+
+    <div id="bingo-container">
+      <div id="bingo-grid"></div>
+    </div>
+  </div>
+
+  <!-- BINGO オーバーレイ -->
+  <div id="bingo-overlay" role="dialog" aria-modal="true" aria-label="BINGOメッセージ">
+    <div class="overlay-card">
+      <div class="overlay-title">BINGO!</div>
+      <div class="overlay-sub" id="overlay-sub">そろいました！</div>
+      <div class="overlay-actions">
+        <button class="mini-btn" id="btn-continue" type="button">つづける</button>
+        <button class="mini-btn" id="btn-new2" type="button">あたらしいカード</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <script>
+    // ----------------------------
+    // 状態
+    // ----------------------------
+    let lastSettings = null;
+    let currentSize = 0;
+    let cellEls = [];
+    let lastBingoKey = "";
+
+    // サウンド
+    let soundEnabled = true;
+    let audioCtx = null;
+
+    // 紙吹雪
+    let confettiRunning = false;
+    let confettiReq = null;
+
+    // ----------------------------
+    // ★盤面サイズを画面に合わせて更新（切れ防止）
+    // ----------------------------
+    function updateBoardSize(){
+      const root = document.documentElement;
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      const titleH = document.querySelector("h1")?.getBoundingClientRect().height || 0;
+      const actions = document.getElementById("game-actions");
+      const actionsH = (actions && actions.offsetParent !== null) ? actions.getBoundingClientRect().height : 0;
+
+      // 上下の余白（body padding + ちょい余裕）
+      const safePad = 24;
+
+      // 盤面に使える高さ
+      const availH = vh - titleH - actionsH - safePad;
+
+      // 盤面は「画面幅」「使える高さ」「上限」から最小を取る
+      const size = Math.max(240, Math.min(vw * 0.92, availH, 680));
+
+      root.style.setProperty("--board-size", size + "px");
+    }
+
+    window.addEventListener("resize", () => {
+      updateBoardSize();
+    }, {passive:true});
+
+    // ----------------------------
+    // 子ども向けUI：サイズ選択
+    // ----------------------------
+    function setGridSize(size){
+      document.getElementById("grid-size").value = String(size);
+      document.querySelectorAll("#size-choices .choice-btn").forEach(btn=>{
+        btn.classList.toggle("selected", btn.dataset.size === String(size));
+      });
+      updateNeedHint();
+    }
+
+    document.querySelectorAll("#size-choices .choice-btn").forEach(btn=>{
+      btn.addEventListener("click", () => setGridSize(btn.dataset.size));
+    });
+
+    // ----------------------------
+    // 子ども向けUI：モード選択
+    // ----------------------------
+    function setMode(mode){ // "range" or "custom"
+      const isRange = mode === "range";
+      document.getElementById("mode-range").checked = isRange;
+      document.getElementById("mode-custom").checked = !isRange;
+
+      document.getElementById("btn-mode-range").classList.toggle("selected", isRange);
+      document.getElementById("btn-mode-custom").classList.toggle("selected", !isRange);
+
+      document.getElementById("input-range-group").style.display = isRange ? "block" : "none";
+      document.getElementById("input-custom-group").style.display = isRange ? "none" : "block";
+
+      updateNeedHint();
+    }
+
+    document.getElementById("btn-mode-range").addEventListener("click", ()=>setMode("range"));
+    document.getElementById("btn-mode-custom").addEventListener("click", ()=>setMode("custom"));
+
+    // ----------------------------
+    // FREEスイッチ
+    // ----------------------------
+    function setFree(on){
+      const sw = document.getElementById("free-switch");
+      const cb = document.getElementById("use-free-space");
+      cb.checked = !!on;
+      sw.classList.toggle("on", !!on);
+      sw.setAttribute("aria-checked", on ? "true" : "false");
+      updateNeedHint();
+    }
+    document.getElementById("free-switch").addEventListener("click", ()=>{
+      setFree(!document.getElementById("use-free-space").checked);
+    });
+    document.getElementById("free-switch").addEventListener("keydown", (e)=>{
+      if(e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        setFree(!document.getElementById("use-free-space").checked);
+      }
+    });
+
+    // ----------------------------
+    // 数字の増減ボタン
+    // ----------------------------
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    function stepMax(delta){
+      const el = document.getElementById("max-number");
+      const v = parseInt(el.value || "0", 10);
+      const next = clamp(v + delta, 1, 999);
+      el.value = String(next);
+      updateNeedHint();
+    }
+
+    document.getElementById("btn-max-dec").addEventListener("click", ()=>stepMax(-1));
+    document.getElementById("btn-max-inc").addEventListener("click", ()=>stepMax(+1));
+    document.getElementById("max-number").addEventListener("input", updateNeedHint);
+    document.getElementById("custom-numbers").addEventListener("input", updateNeedHint);
+
+    function neededCells(size, useFreeSpace){
+      const total = size * size;
+      const free = (useFreeSpace && size % 2 !== 0) ? 1 : 0;
+      return total - free;
+    }
+
+    function parseCustomList(rawText){
+      return rawText
+        .replace(/，/g, ",")
+        .replace(/[、]/g, ",")
+        .split(/[\s,]+/g)
+        .map(s => s.trim())
+        .filter(s => s !== "");
+    }
+
+    function updateNeedHint(){
+      const size = parseInt(document.getElementById("grid-size").value, 10);
+      const useFree = document.getElementById("use-free-space").checked;
+      const need = neededCells(size, useFree);
+
+      const isRange = document.getElementById("mode-range").checked;
+      const hint = document.getElementById("need-hint");
+
+      // FREEは奇数のみ有効：偶数なら自動でOFF表示だけ補助
+      const freeSwitch = document.getElementById("free-switch");
+      if(size % 2 === 0){
+        // 偶数のときはFREEをOFF扱いに（チェックは残すと混乱するのでOFFへ寄せる）
+        if(useFree) setFree(false);
+        freeSwitch.style.opacity = "0.45";
+        freeSwitch.style.pointerEvents = "none";
+      }else{
+        freeSwitch.style.opacity = "1";
+        freeSwitch.style.pointerEvents = "auto";
+      }
+
+      if(isRange){
+        const maxNum = parseInt(document.getElementById("max-number").value || "0", 10);
+        if(maxNum < need){
+          hint.textContent = `たりない！ すうじが ${need} こ ひつよう（いま：1〜${maxNum}）`;
+          hint.style.color = "#b42318";
+        }else{
+          hint.textContent = `OK！ マス ${size}×${size} を つくれるよ（ひつよう：${need}こ）`;
+          hint.style.color = "#1f7a3b";
+        }
+      }else{
+        const list = parseCustomList(document.getElementById("custom-numbers").value);
+        const ch = document.getElementById("custom-hint");
+        if(list.length < need){
+          ch.textContent = `たりない！ いま ${list.length}こ → ${need}こ いれてね`;
+          ch.style.color = "#b42318";
+        }else{
+          ch.textContent = `OK！ いま ${list.length}こ あるよ（ひつよう：${need}こ）`;
+          ch.style.color = "#1f7a3b";
+        }
+      }
+    }
+
+    // ----------------------------
+    // 表示切替
+    // ----------------------------
+    function showGame(){
+      document.getElementById("settings-panel").style.display = "none";
+      document.getElementById("game-panel").style.display = "flex";
+      requestAnimationFrame(()=> {
+        updateBoardSize();
+      });
+    }
+    function showSettings(){
+      document.getElementById("game-panel").style.display = "none";
+      document.getElementById("settings-panel").style.display = "block";
+    }
+
+    // ----------------------------
+    // サウンド（WebAudio）
+    // ----------------------------
+    function ensureAudio(){
+      if(!soundEnabled) return null;
+      if(!audioCtx){
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if(!Ctx) return null;
+        audioCtx = new Ctx();
+      }
+      if(audioCtx.state === "suspended"){
+        audioCtx.resume().catch(()=>{});
+      }
+      return audioCtx;
+    }
+
+    function tone({freq=440, type="sine", dur=0.08, gain=0.08, ramp=0.02} = {}){
+      const ctx = ensureAudio();
+      if(!ctx) return;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      const t = ctx.currentTime;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + ramp);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t + dur + 0.01);
+    }
+
+    function playPunchSound(){
+      tone({freq: 520, type:"triangle", dur:0.07, gain:0.07, ramp:0.01});
+      tone({freq: 260, type:"sine", dur:0.06, gain:0.03, ramp:0.01});
+    }
+    function playUnpunchSound(){
+      tone({freq: 320, type:"sine", dur:0.06, gain:0.05, ramp:0.01});
+    }
+    function playBingoSound(){
+      tone({freq: 110, type:"sine", dur:0.18, gain:0.12, ramp:0.01});
+      setTimeout(()=> tone({freq: 523.25, type:"triangle", dur:0.12, gain:0.08, ramp:0.01}), 60);
+      setTimeout(()=> tone({freq: 659.25, type:"triangle", dur:0.12, gain:0.07, ramp:0.01}), 90);
+      setTimeout(()=> tone({freq: 783.99, type:"triangle", dur:0.14, gain:0.07, ramp:0.01}), 120);
+    }
+
+    // ----------------------------
+    // 紙吹雪
+    // ----------------------------
+    function startConfetti(ms=2200){
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+      function resize(){
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      resize();
+
+      const colors = ["#4A90E2","#e74c3c","#2ecc71","#f1c40f","#9b59b6","#0ea5e9","#ff6b6b"];
+      const pieces = [];
+      const N = Math.min(220, Math.max(120, Math.floor(window.innerWidth / 6)));
+
+      for(let i=0;i<N;i++){
+        pieces.push({
+          x: Math.random()*window.innerWidth,
+          y: -20 - Math.random()*window.innerHeight*0.6,
+          w: 6 + Math.random()*8,
+          h: 8 + Math.random()*14,
+          vx: -2 + Math.random()*4,
+          vy: 2 + Math.random()*5,
+          rot: Math.random()*Math.PI,
+          vr: -0.15 + Math.random()*0.3,
+          color: colors[(Math.random()*colors.length)|0],
+          alpha: 0.85 + Math.random()*0.15
+        });
+      }
+
+      const start = performance.now();
+      canvas.classList.add("show");
+      confettiRunning = true;
+
+      function tick(now){
+        const elapsed = now - start;
+        ctx.clearRect(0,0,window.innerWidth, window.innerHeight);
+        for(const p of pieces){
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vr;
+          p.vx += Math.sin((p.y/60) + p.rot) * 0.02;
+          if(p.y > window.innerHeight + 60){ p.alpha *= 0.98; }
+
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          ctx.restore();
+        }
+        if(elapsed < ms){
+          confettiReq = requestAnimationFrame(tick);
+        }else{
+          stopConfetti();
+        }
+      }
+
+      const onResize = () => { if(confettiRunning) resize(); };
+      window.addEventListener("resize", onResize, {passive:true});
+      canvas._onResize = onResize;
+
+      confettiReq = requestAnimationFrame(tick);
+    }
+
+    function stopConfetti(){
+      const canvas = document.getElementById("confetti-canvas");
+      confettiRunning = false;
+      if(confettiReq) cancelAnimationFrame(confettiReq);
+      confettiReq = null;
+      canvas.classList.remove("show");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      if(canvas._onResize){
+        window.removeEventListener("resize", canvas._onResize);
+        canvas._onResize = null;
+      }
+    }
+
+    // ----------------------------
+    // ビンゴ判定
+    // ----------------------------
+    function clearBingoHighlights(){
+      cellEls.forEach(el => el.classList.remove("bingo-line"));
+    }
+
+    function getPunchedMatrix(){
+      const n = currentSize;
+      const m = Array.from({length:n}, ()=> Array(n).fill(false));
+      for(let i=0;i<n*n;i++){
+        const r = Math.floor(i/n);
+        const c = i % n;
+        m[r][c] = cellEls[i].classList.contains("punched");
+      }
+      return m;
+    }
+
+    function detectBingoLines(m){
+      const n = m.length;
+      const lines = [];
+
+      for(let r=0;r<n;r++){
+        let ok=true;
+        for(let c=0;c<n;c++) if(!m[r][c]){ ok=false; break; }
+        if(ok) lines.push({type:"row", idx:r});
+      }
+      for(let c=0;c<n;c++){
+        let ok=true;
+        for(let r=0;r<n;r++) if(!m[r][c]){ ok=false; break; }
+        if(ok) lines.push({type:"col", idx:c});
+      }
+      {
+        let ok=true;
+        for(let i=0;i<n;i++) if(!m[i][i]){ ok=false; break; }
+        if(ok) lines.push({type:"diag", idx:0});
+      }
+      {
+        let ok=true;
+        for(let i=0;i<n;i++) if(!m[i][n-1-i]){ ok=false; break; }
+        if(ok) lines.push({type:"diag", idx:1});
+      }
+      return lines;
+    }
+
+    function applyBingoHighlights(lines){
+      clearBingoHighlights();
+      const n = currentSize;
+      for(const ln of lines){
+        if(ln.type==="row"){
+          for(let c=0;c<n;c++) cellEls[ln.idx*n + c].classList.add("bingo-line");
+        }else if(ln.type==="col"){
+          for(let r=0;r<n;r++) cellEls[r*n + ln.idx].classList.add("bingo-line");
+        }else if(ln.type==="diag" && ln.idx===0){
+          for(let i=0;i<n;i++) cellEls[i*n + i].classList.add("bingo-line");
+        }else if(ln.type==="diag" && ln.idx===1){
+          for(let i=0;i<n;i++) cellEls[i*n + (n-1-i)].classList.add("bingo-line");
+        }
+      }
+    }
+
+    function bingoKey(lines){
+      return lines.map(l => `${l.type}:${l.idx}`).sort().join("|");
+    }
+
+    function showBingoOverlay(lineCount){
+      const overlay = document.getElementById("bingo-overlay");
+      const sub = document.getElementById("overlay-sub");
+      sub.textContent = (lineCount >= 2) ? `すごい！ ${lineCount}ライン！` : "そろいました！";
+      overlay.classList.add("show");
+    }
+    function hideBingoOverlay(){
+      document.getElementById("bingo-overlay").classList.remove("show");
+    }
+
+    function checkBingoAndCelebrate(){
+      const m = getPunchedMatrix();
+      const lines = detectBingoLines(m);
+      applyBingoHighlights(lines);
+
+      const key = bingoKey(lines);
+      if(lines.length > 0){
+        if(key !== lastBingoKey){
+          lastBingoKey = key;
+          playBingoSound();
+          startConfetti(2300);
+          showBingoOverlay(lines.length);
+        }
+      }else{
+        lastBingoKey = "";
+        stopConfetti();
+        hideBingoOverlay();
+      }
+    }
+
+    // ----------------------------
+    // 生成
+    // ----------------------------
+    function getSettingsFromUI(){
+      const size = parseInt(document.getElementById("grid-size").value, 10);
+      const isRangeMode = document.getElementById("mode-range").checked;
+      const useFreeSpace = document.getElementById("use-free-space").checked;
+      const maxNum = parseInt(document.getElementById("max-number").value, 10);
+      const rawCustom = document.getElementById("custom-numbers").value;
+      return { size, isRangeMode, useFreeSpace, maxNum, rawCustom };
+    }
+
+    function buildSourceList(settings){
+      const need = neededCells(settings.size, settings.useFreeSpace);
+      let source = [];
+
+      if(settings.isRangeMode){
+        const maxNum = Number.isFinite(settings.maxNum) ? settings.maxNum : 0;
+        if(maxNum < need){
+          alert(`たりない！\nひつよう：${need}こ\nいま：1〜${maxNum}`);
+          return null;
+        }
+        for(let i=1;i<=maxNum;i++) source.push(i);
+      }else{
+        source = parseCustomList(settings.rawCustom);
+        if(source.length < need){
+          alert(`たりない！\nひつよう：${need}こ\nいま：${source.length}こ`);
+          return null;
+        }
+      }
+      return source;
+    }
+
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function renderGrid(settings, source){
+      const size = settings.size;
+      const useFreeSpace = settings.useFreeSpace;
+
+      currentSize = size;
+      lastBingoKey = "";
+      stopConfetti();
+      hideBingoOverlay();
+
+      const numbers = shuffle([...source]);
+
+      const grid = document.getElementById("bingo-grid");
+      grid.innerHTML = "";
+      grid.style.gridTemplateColumns = `repeat(${size}, minmax(0,1fr))`;
+
+      grid.className = "";
+      if(size <= 3) grid.classList.add("grid-small");
+      if(size >= 6) grid.classList.add("grid-large");
+
+      const totalCells = size * size;
+      const centerIndex = Math.floor(totalCells / 2);
+
+      let numberIndex = 0;
+      cellEls = [];
+
+      for(let i=0;i<totalCells;i++){
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.classList.add("bingo-cell");
+
+        const isCenter = (useFreeSpace && size % 2 !== 0 && i === centerIndex);
+
+        if(isCenter){
+          cell.textContent = "FREE";
+          cell.classList.add("free","punched");
+        }else{
+          cell.textContent = String(numbers[numberIndex]);
+          numberIndex++;
+        }
+
+        cell.addEventListener("click", () => togglePunch(cell));
+        cellEls.push(cell);
+        grid.appendChild(cell);
+      }
+
+      updateBoardSize(); // ★生成直後に盤面サイズも更新
+      checkBingoAndCelebrate();
+    }
+
+    function generateBingo(fromUI=true){
+      const settings = fromUI ? getSettingsFromUI() : lastSettings;
+      if(!settings) return;
+
+      const source = buildSourceList(settings);
+      if(!source) return;
+
+      lastSettings = settings;
+      renderGrid(settings, source);
+      showGame();
+    }
+
+    // ----------------------------
+    // 穴あけ
+    // ----------------------------
+    function togglePunch(el){
+      const was = el.classList.contains("punched");
+      el.classList.toggle("punched");
+
+      if(soundEnabled){
+        if(was) playUnpunchSound();
+        else playPunchSound();
+      }
+      checkBingoAndCelebrate();
+    }
+
+    function clearPunchAll(){
+      cellEls.forEach(el => el.classList.remove("punched"));
+      clearBingoHighlights();
+      lastBingoKey = "";
+      stopConfetti();
+      hideBingoOverlay();
+    }
+
+    // ----------------------------
+    // 戻る
+    // ----------------------------
+    function resetGame(){
+      if(confirm("もどる？ いまのカードは きえるよ")){
+        stopConfetti();
+        hideBingoOverlay();
+        showSettings();
+      }
+    }
+
+    // ----------------------------
+    // フルスクリーン
+    // ----------------------------
+    async function toggleFullscreen(){
+      try{
+        const isFs = !!document.fullscreenElement;
+        if(!isFs) await document.documentElement.requestFullscreen();
+        else await document.exitFullscreen();
+      }catch(e){
+        alert("このブラウザではフルスクリーンにできないことがあります。");
+      }
+    }
+
+    document.addEventListener("fullscreenchange", ()=>{
+      const isFs = !!document.fullscreenElement;
+      document.body.classList.toggle("is-fullscreen", isFs);
+      document.getElementById("btn-fullscreen").textContent = isFs ? "フルスクリーン解除" : "フルスクリーン";
+      // ★切れ防止：フルスクリーン切替後に盤面再計算
+      requestAnimationFrame(()=>updateBoardSize());
+    });
+
+    // ----------------------------
+    // イベント
+    // ----------------------------
+    document.getElementById("btn-generate").addEventListener("click", ()=>generateBingo(true));
+    document.getElementById("btn-back").addEventListener("click", resetGame);
+    document.getElementById("btn-new").addEventListener("click", ()=>generateBingo(false));
+    document.getElementById("btn-clear").addEventListener("click", clearPunchAll);
+    document.getElementById("btn-fullscreen").addEventListener("click", toggleFullscreen);
+
+    document.getElementById("btn-sound").addEventListener("click", (e)=>{
+      soundEnabled = !soundEnabled;
+      const btn = e.currentTarget;
+      btn.classList.toggle("on", soundEnabled);
+      btn.setAttribute("aria-pressed", soundEnabled ? "true" : "false");
+      btn.textContent = soundEnabled ? "音：ON" : "音：OFF";
+      if(soundEnabled) ensureAudio();
+    });
+
+    document.getElementById("btn-continue").addEventListener("click", hideBingoOverlay);
+    document.getElementById("btn-new2").addEventListener("click", ()=>{
+      hideBingoOverlay();
+      generateBingo(false);
+    });
+    document.getElementById("bingo-overlay").addEventListener("click", (e)=>{
+      if(e.target.id === "bingo-overlay") hideBingoOverlay();
+    });
+
+    // ----------------------------
+    // 初期化
+    // ----------------------------
+    setGridSize(5);
+    setMode("range");
+    setFree(true);
+    updateNeedHint();
+    updateBoardSize();
+  </script>
+</body>
+</html>
