@@ -278,7 +278,7 @@
     }
     @keyframes flash { from {filter: brightness(1);} to {filter: brightness(1.2);} }
 
-    /* Overlay */
+    /* Overlay (BINGO) */
     #overlay {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.6);
@@ -303,6 +303,163 @@
     /* Confetti */
     #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
 
+    /* Teacher Mode */
+    #teacher {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 120;
+      padding: 14px;
+    }
+    .teacher-card{
+      background:#fff;
+      width:min(720px, 95vw);
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      border: 2px solid #e2e8f0;
+    }
+    .teacher-top{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .teacher-title{
+      font-weight: 900;
+      color: var(--primary);
+      font-size: 1.1rem;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .teacher-badge{
+      width:32px;height:32px;border-radius:50%;
+      background: var(--primary-bg);
+      color: var(--primary);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:900;
+    }
+    .teacher-number{
+      margin: 10px auto 8px;
+      width: min(320px, 80vw);
+      aspect-ratio: 1/1;
+      border-radius: 50%;
+      border: 8px solid var(--primary);
+      background: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: clamp(44px, 10vw, 96px);
+      font-weight: 900;
+      color: var(--primary);
+      box-shadow: 0 10px 30px rgba(74,144,226,0.25);
+    }
+    .teacher-sub{
+      text-align:center;
+      color:#475569;
+      font-weight:800;
+      margin-bottom: 10px;
+    }
+    .teacher-controls{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      justify-content:center;
+      margin: 10px 0 8px;
+    }
+    .teacher-btn{
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid #cbd5e1;
+      background:#fff;
+      font-weight:900;
+      color:#334155;
+      min-width: 140px;
+      font-size: 1rem;
+    }
+    .teacher-btn.primary{
+      background: var(--primary);
+      color:#fff;
+      border:none;
+    }
+    .teacher-btn:active{ transform: scale(0.98); }
+
+    .teacher-toggles{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap: wrap;
+      margin: 8px 0 10px;
+    }
+    .toggle-chip{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      background:#fff;
+      font-weight: 900;
+      color:#475569;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .toggle-chip.active{
+      background: var(--primary-bg);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    .toggle-chip input{ width:18px; height:18px; }
+
+    .history-box{
+      background:#f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 10px;
+    }
+    .history-title{
+      font-weight: 900;
+      color:#334155;
+      margin: 0 0 8px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chips{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 140px;
+      overflow:auto;
+      padding-right: 6px;
+    }
+    .chip{
+      background:#fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 900;
+      color:#334155;
+      font-size: 0.95rem;
+    }
+    .chip.latest{
+      background: var(--primary-bg);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .teacher-footer{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 <body>
@@ -360,6 +517,8 @@
     <div class="game-header" id="game-header">
       <button class="mini-btn" onclick="reloadGame()">🔄 あたらしいカード</button>
       <button class="mini-btn" onclick="resetPunches()">⚡️ ぜんぶもどす</button>
+      <button class="mini-btn" onclick="downloadPNG()">💾 PNG保存</button>
+      <button class="mini-btn" onclick="openTeacher()">📣 先生モード</button>
       <button class="mini-btn active" id="btn-sound" onclick="toggleSound()">🔊 音: ON</button>
       <button class="mini-btn btn-back" onclick="backToSettings()">⚙️ 設定へ</button>
     </div>
@@ -367,11 +526,53 @@
     <div id="board-wrapper"></div>
   </div>
 
+  <!-- BINGO Overlay -->
   <div id="overlay" onclick="closeOverlay()">
     <div class="msg-card" onclick="event.stopPropagation()">
       <p class="msg-title">BINGO!</p>
       <p id="overlay-sub" style="font-weight:bold; margin-top:10px;">おめでとう！そろったよ！</p>
       <button class="mini-btn" style="margin-top:20px; font-size:1.1rem; padding:10px 20px;" onclick="closeOverlay()">つづける</button>
+    </div>
+  </div>
+
+  <!-- Teacher Mode -->
+  <div id="teacher" onclick="closeTeacher()">
+    <div class="teacher-card" onclick="event.stopPropagation()">
+      <div class="teacher-top">
+        <div class="teacher-title"><span class="teacher-badge">📣</span>先生モード（番号コール）</div>
+        <button class="mini-btn btn-back" onclick="closeTeacher()">閉じる</button>
+      </div>
+
+      <div class="teacher-number" id="call-current">--</div>
+      <div class="teacher-sub">
+        残り：<span id="call-remaining">--</span>　/　コール済み：<span id="call-drawn">0</span>
+      </div>
+
+      <div class="teacher-controls">
+        <button class="teacher-btn primary" onclick="callNext()">次をひく</button>
+        <button class="teacher-btn" onclick="callUndo()">ひとつもどる</button>
+        <button class="teacher-btn" onclick="callReset()">リセット</button>
+      </div>
+
+      <div class="teacher-toggles">
+        <button class="toggle-chip active" id="btn-tts" onclick="toggleTTS()">🗣 読み上げ: ON</button>
+        <label class="toggle-chip" id="chip-autopunch">
+          <input type="checkbox" id="check-autopunch" onchange="toggleAutoPunch()">
+          自動で穴あけ
+        </label>
+      </div>
+
+      <div class="history-box">
+        <div class="history-title">
+          <span>コール履歴</span>
+          <span style="font-size:0.9rem; color:#64748b; font-weight:900;">（新しいほど右）</span>
+        </div>
+        <div class="chips" id="call-history"></div>
+      </div>
+
+      <div class="teacher-footer">
+        <button class="mini-btn" onclick="clearSpeech()">🔇 読み上げ停止</button>
+      </div>
     </div>
   </div>
 
@@ -384,7 +585,19 @@
       mode: 'range',
       gridData: [],
       punched: [],
-      bingoKey: ""
+      bingoKey: "",
+      highlightSet: new Set(),
+      sourcePool: [] // 先生モード用（1..max or custom list）
+    };
+
+    // teacher state
+    let teacher = {
+      remaining: [],
+      drawn: [],
+      current: null,
+      tts: true,
+      autoPunch: false,
+      poolKey: "" // 設定が変わったら再構築
     };
 
     let soundEnabled = true;
@@ -427,7 +640,7 @@
     document.getElementById('custom-text').addEventListener('input', validateInputs);
     document.getElementById('check-free').addEventListener('change', validateInputs);
 
-    // 偶数サイズのとき FREE を無効化して混乱を防ぐ
+    // 偶数サイズのとき FREE を無効化
     function normalizeFreeOption(){
       const cb = document.getElementById('check-free');
       const hint = document.getElementById('free-hint');
@@ -452,7 +665,10 @@
     }
 
     function parseCustomList(txt){
-      return txt.replace(/，/g, ',').split(/[\s,]+/).map(s=>s.trim()).filter(Boolean);
+      return txt.replace(/，/g, ',')
+        .split(/[\s,]+/)
+        .map(s=>s.trim())
+        .filter(Boolean);
     }
 
     function validateInputs() {
@@ -490,7 +706,7 @@
       validateInputs();
     }
 
-    // ゲーム生成
+    // ===== Game generate =====
     function generateGame() {
       normalizeFreeOption();
 
@@ -506,7 +722,10 @@
         if (source.length < needed) { alert('文字が足りません'); return; }
       }
 
-      // シャッフル
+      // 先生モード用にプール保存（シャッフル前のコピー）
+      state.sourcePool = source.slice();
+
+      // シャッフル（カード用）
       for (let i = source.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [source[i], source[j]] = [source[j], source[i]];
@@ -515,6 +734,7 @@
       state.gridData = [];
       state.punched = [];
       state.bingoKey = "";
+      state.highlightSet = new Set();
 
       const total = state.size * state.size;
       const center = Math.floor(total / 2);
@@ -532,6 +752,9 @@
           idx++;
         }
       }
+
+      // 先生モードの袋も、この時点で更新
+      teacherResetInternal(true);
 
       document.getElementById('settings-panel').style.display = 'none';
       document.getElementById('game-panel').style.display = 'flex';
@@ -581,7 +804,6 @@
     }
 
     function makeBingoKey(lines){
-      // 同じ内容なら同じキーに（順番の影響を受けにくくする）
       const k = lines.map(l => `${l.type}:${l.idx}`).sort().join('|');
       return `${lines.length}|${k}`;
     }
@@ -612,19 +834,27 @@
       if (d1) lines.push({ type: 'diag', idx: 0 });
       if (d2) lines.push({ type: 'diag', idx: 1 });
 
-      const cells = document.querySelectorAll('.cell');
-      cells.forEach(c => c.classList.remove('bingo-line'));
+      // highlight set 更新（PNG保存でも使う）
+      const highlight = new Set();
+      const addIdx = (idx)=>highlight.add(idx);
 
       lines.forEach(line => {
-        if (line.type === 'row') for (let k = 0; k < s; k++) cells[line.idx * s + k].classList.add('bingo-line');
-        if (line.type === 'col') for (let k = 0; k < s; k++) cells[k * s + line.idx].classList.add('bingo-line');
+        if (line.type === 'row') for (let k = 0; k < s; k++) addIdx(line.idx * s + k);
+        if (line.type === 'col') for (let k = 0; k < s; k++) addIdx(k * s + line.idx);
         if (line.type === 'diag') {
-          if (line.idx === 0) for (let k = 0; k < s; k++) cells[k * s + k].classList.add('bingo-line');
-          if (line.idx === 1) for (let k = 0; k < s; k++) cells[k * s + (s - 1 - k)].classList.add('bingo-line');
+          if (line.idx === 0) for (let k = 0; k < s; k++) addIdx(k * s + k);
+          if (line.idx === 1) for (let k = 0; k < s; k++) addIdx(k * s + (s - 1 - k));
         }
       });
+      state.highlightSet = highlight;
 
-      // ★重要：ビンゴが消えたらキーをリセット（これで再ビンゴ演出が生きる）
+      // DOM reflect
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach((c, i) => {
+        c.classList.toggle('bingo-line', highlight.has(i));
+      });
+
+      // ビンゴが消えたらキーをリセット
       if (lines.length === 0) {
         state.bingoKey = "";
         return;
@@ -752,6 +982,7 @@
     }
     function closeOverlay() {
       document.getElementById('overlay').style.display = 'none';
+      stopConfetti();
     }
 
     // ===== confetti (DPR + auto stop) =====
@@ -822,7 +1053,7 @@
       }
 
       confettiReq = requestAnimationFrame(loop);
-      confettiTimer = setTimeout(stopConfetti, ms + 100);
+      confettiTimer = setTimeout(stopConfetti, ms + 150);
     }
 
     function stopConfetti(){
@@ -836,7 +1067,303 @@
       ctx.clearRect(0, 0, cvs.width, cvs.height);
     }
 
-    // 初期化
+    // ===== PNG 保存 =====
+    function downloadPNG(){
+      if (!state.gridData || state.gridData.length === 0) {
+        alert('先にカードを作ってね！');
+        return;
+      }
+
+      const wrapper = document.getElementById('board-wrapper');
+      const boardPx = wrapper.clientWidth; // 表示サイズ
+      const s = state.size;
+
+      const padding = 10; // CSSと揃える
+      const gap = 8;
+
+      // 余白分を含んだ「枠サイズ」をそのまま書き出し（見た目そのまま）
+      const exportScale = 2; // きれいに
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const ratio = exportScale * dpr;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(boardPx * ratio);
+      canvas.height = Math.floor(boardPx * ratio);
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+      // 背景
+      roundRect(ctx, 0, 0, boardPx, boardPx, 20);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      // 内側グリッド領域
+      const inner = boardPx - padding*2;
+      const cell = (inner - gap*(s-1)) / s;
+      const borderW = (s >= 6) ? 2 : 3;
+
+      // フォント
+      const baseFont = `"Hiragino Kaku Gothic ProN","Meiryo",sans-serif`;
+
+      for(let i=0;i<s*s;i++){
+        const r = Math.floor(i / s);
+        const c = i % s;
+
+        const cx = padding + c*(cell+gap) + cell/2;
+        const cy = padding + r*(cell+gap) + cell/2;
+        const rad = cell/2;
+
+        const val = state.gridData[i];
+        const isFree = (val === 'FREE');
+        const punched = !!state.punched[i];
+        const highlight = state.highlightSet && state.highlightSet.has(i);
+
+        // fill
+        let fill = '#fff';
+        if (punched) fill = '#333';
+        else if (isFree) fill = '#fff5f5';
+
+        // stroke
+        let stroke = getCSS('--primary');
+        if (isFree) stroke = getCSS('--accent');
+        if (highlight) stroke = '#f1c40f';
+
+        // circle
+        ctx.beginPath();
+        ctx.arc(cx, cy, rad - 1, 0, Math.PI*2);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+
+        ctx.lineWidth = borderW;
+        ctx.strokeStyle = stroke;
+        ctx.stroke();
+
+        // punched shading (軽く)
+        if(punched){
+          const grd = ctx.createRadialGradient(cx, cy, rad*0.2, cx, cy, rad);
+          grd.addColorStop(0, 'rgba(0,0,0,0)');
+          grd.addColorStop(1, 'rgba(0,0,0,0.45)');
+          ctx.fillStyle = grd;
+          ctx.beginPath();
+          ctx.arc(cx, cy, rad - 1, 0, Math.PI*2);
+          ctx.fill();
+        }
+
+        // text
+        const str = String(val);
+        let fontSize = cell * (s >= 6 ? 0.32 : 0.38);
+        if (isFree) fontSize *= 0.65;
+        ctx.font = `900 ${Math.max(10, fontSize)}px ${baseFont}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        let textColor = getCSS('--primary');
+        if (isFree) textColor = getCSS('--accent');
+        if (punched) textColor = 'rgba(255,255,255,0.18)';
+        ctx.fillStyle = textColor;
+
+        // 長い文字は少し縮める
+        if(str.length >= 4){
+          ctx.font = `900 ${Math.max(10, fontSize*0.78)}px ${baseFont}`;
+        }
+
+        ctx.fillText(str, cx, cy);
+      }
+
+      // download
+      const date = new Date();
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth()+1).padStart(2,'0');
+      const dd = String(date.getDate()).padStart(2,'0');
+
+      const a = document.createElement('a');
+      a.download = `bingo_${state.size}x${state.size}_${yyyy}${mm}${dd}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+
+    function getCSS(varName){
+      return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#4A90E2';
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+    }
+
+    // ===== 先生モード =====
+    function openTeacher(){
+      if (!state.sourcePool || state.sourcePool.length === 0) {
+        alert('先にカードを作ってね！');
+        return;
+      }
+      document.getElementById('teacher').style.display = 'flex';
+
+      // 設定が変わっていたら袋を作り直す
+      const key = makeTeacherPoolKey();
+      if (teacher.poolKey !== key) teacherResetInternal(true);
+
+      updateTeacherUI();
+    }
+
+    function closeTeacher(){
+      document.getElementById('teacher').style.display = 'none';
+    }
+
+    function makeTeacherPoolKey(){
+      const free = document.getElementById('check-free').checked ? 1 : 0;
+      const max = parseInt(document.getElementById('max-num').value,10) || 0;
+      const txtLen = document.getElementById('custom-text').value.length || 0;
+      return `${state.size}|${state.mode}|${free}|${max}|${txtLen}|${state.sourcePool.length}`;
+    }
+
+    function teacherResetInternal(force=false){
+      teacher.poolKey = makeTeacherPoolKey();
+      teacher.drawn = [];
+      teacher.current = null;
+
+      // remaining = シャッフルした袋
+      teacher.remaining = state.sourcePool.slice();
+      for(let i=teacher.remaining.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [teacher.remaining[i], teacher.remaining[j]] = [teacher.remaining[j], teacher.remaining[i]];
+      }
+
+      // UI側のチェック反映
+      const cb = document.getElementById('check-autopunch');
+      teacher.autoPunch = !!cb.checked;
+      updateTeacherUI();
+    }
+
+    function callReset(){
+      if(confirm('番号コールをリセットしますか？（履歴が消えます）')){
+        teacherResetInternal(true);
+        clearSpeech();
+      }
+    }
+
+    function callNext(){
+      if(teacher.remaining.length === 0){
+        alert('全部出ました！');
+        return;
+      }
+
+      const val = teacher.remaining.pop();
+      teacher.drawn.push(val);
+      teacher.current = val;
+
+      if(teacher.tts) speakCall(val);
+      if(teacher.autoPunch) punchValue(val);
+
+      updateTeacherUI();
+    }
+
+    function callUndo(){
+      if(teacher.drawn.length === 0) return;
+
+      const last = teacher.drawn.pop();
+      teacher.remaining.push(last); // 次にまた出る可能性あり（戻し）
+      teacher.current = teacher.drawn.length ? teacher.drawn[teacher.drawn.length-1] : null;
+
+      updateTeacherUI();
+    }
+
+    function updateTeacherUI(){
+      document.getElementById('call-current').textContent = (teacher.current === null) ? '--' : String(teacher.current);
+      document.getElementById('call-remaining').textContent = teacher.remaining.length;
+      document.getElementById('call-drawn').textContent = teacher.drawn.length;
+
+      const history = document.getElementById('call-history');
+      history.innerHTML = '';
+
+      // 表示しすぎると重いので最大120個まで
+      const start = Math.max(0, teacher.drawn.length - 120);
+      const show = teacher.drawn.slice(start);
+
+      show.forEach((v, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        if(i === show.length - 1) chip.classList.add('latest');
+        chip.textContent = String(v);
+        history.appendChild(chip);
+      });
+
+      // toggle look
+      const btn = document.getElementById('btn-tts');
+      btn.classList.toggle('active', teacher.tts);
+      btn.textContent = teacher.tts ? '🗣 読み上げ: ON' : '🔇 読み上げ: OFF';
+
+      const chipAuto = document.getElementById('chip-autopunch');
+      chipAuto.classList.toggle('active', teacher.autoPunch);
+    }
+
+    function toggleTTS(){
+      teacher.tts = !teacher.tts;
+      if(!teacher.tts) clearSpeech();
+      updateTeacherUI();
+    }
+
+    function toggleAutoPunch(){
+      teacher.autoPunch = document.getElementById('check-autopunch').checked;
+      updateTeacherUI();
+    }
+
+    function clearSpeech(){
+      try{
+        if('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }catch(e){}
+    }
+
+    function speakCall(val){
+      if(!('speechSynthesis' in window)) return;
+
+      // 連打でも詰まらないように
+      window.speechSynthesis.cancel();
+
+      const text = `つぎは、${String(val)}`;
+      const uttr = new SpeechSynthesisUtterance(text);
+      uttr.lang = 'ja-JP';
+      uttr.rate = 1.0;
+      uttr.pitch = 1.0;
+
+      window.speechSynthesis.speak(uttr);
+    }
+
+    // コール値と同じマスを穴あけ（未穴のみ）
+    function punchValue(val){
+      if(!state.gridData || state.gridData.length === 0) return;
+
+      const target = String(val);
+      let changed = false;
+
+      for(let i=0;i<state.gridData.length;i++){
+        const g = state.gridData[i];
+        if(g === 'FREE') continue;
+        if(String(g) === target && !state.punched[i]){
+          state.punched[i] = true;
+          changed = true;
+        }
+      }
+
+      if(changed){
+        // DOM更新
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach((el, i)=>{
+          el.classList.toggle('punched', !!state.punched[i]);
+        });
+        playSound('punch');
+        checkBingo(true);
+      }
+    }
+
+    // ===== 初期化 =====
     normalizeFreeOption();
     validateInputs();
     resizeConfetti();
